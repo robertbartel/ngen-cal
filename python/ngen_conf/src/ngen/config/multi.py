@@ -1,5 +1,5 @@
-from typing import Sequence, Mapping, Any, Optional
-from pydantic import root_validator, Field
+from typing import Sequence, Mapping, Any, Optional, Literal
+from pydantic import root_validator, Field, BaseModel
 
 from .bmi_formulation import BMIParams
 
@@ -19,7 +19,7 @@ class MultiBMI(BMIParams, smart_union=True):
     # NOTE this is derived from the list of modules
     main_output_variable: Optional[str]
     #NOTE aliases don't propagate to subclasses, so we have to repeat the alias
-    model_name: Optional[str] = Field(alias="model_type_name")
+    model_name: Literal["BMIMulti"] = Field("BMIMulti", alias="model_type_name")
     
     #override const since these shouldn't be used for multi bmi, but are currently
     #required to exist as keys for ngen
@@ -27,29 +27,6 @@ class MultiBMI(BMIParams, smart_union=True):
     _config_prefix: Optional[str] = Field(None, const=True, alias="config_prefix")
     name_map: Mapping[str, str] = Field(None, const=True) #not relevant for multi-bmi
     model_params: Optional[Mapping[str, str]] = Field(None, const=True) #not relevant for multi-bmi
-    
-    @root_validator(pre=True)
-    def build_model_name(cls, values: Mapping[str, Any]):
-        """Construct the model name, if none provided.
-
-            If no model name is provided, the multiBMI model_type_name
-            is constructed by joining each module's name using `_`
-
-        Args:
-            values (Mapping[str, Any]): Attributes to assgign to the class, including all defaults
-
-        Returns:
-            Mapping[str, Any]: Attributes to assign to the class, with a (possibly) modifed `model_name`
-        """ 
-        name = values.get('model_name')
-        modules = values.get('modules')
-        if not name and modules:
-            try:
-                names = [ m['params']['model_name'] for m in modules ]
-            except KeyError:
-                names = [ m['params']['model_type_name'] for m in modules ]
-            values['model_name'] = '_'.join( names )
-        return values
 
     @root_validator(pre=True)
     def pick_main_output(cls, values: Mapping[str, Any]) -> Mapping[str, Any]:
@@ -67,7 +44,14 @@ class MultiBMI(BMIParams, smart_union=True):
         var = values.get('main_output_variable')
         modules = values.get('modules')
         if not var and modules:
-           values['main_output_variable'] = modules[-1]['params']['main_output_variable']
+            last = modules[-1]
+
+            # cannot treat Formulation type like dictionary
+            from ngen.config.formulation import Formulation
+            if isinstance(last, Formulation):
+                values['main_output_variable'] = last.params.main_output_variable
+            else:
+                values['main_output_variable'] = last['params']['main_output_variable']
         return values
 
 #NOTE To avoid circular import and support recrusive modules
