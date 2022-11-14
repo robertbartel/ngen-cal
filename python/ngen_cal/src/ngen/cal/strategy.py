@@ -16,7 +16,7 @@ class Algorithm(str, Enum):
     """
     dds = "dds"
 
-class Objective(Enum):
+class Objective(str, Enum):
     """Enumeration of supported search algorithms
 
     """
