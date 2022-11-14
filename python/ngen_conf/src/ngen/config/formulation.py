@@ -5,7 +5,7 @@ class Formulation(BaseModel, smart_union=True):
     """
     #TODO make this an enum?
     name: str
-    params:  "KnownFormulations" = Field(descriminator="model_name")
+    params:  "KnownFormulations" = Field(discriminator="model_name")
 
 #NOTE To avoid circular import and support recrusive modules
 #note that `params` is one of KnownFormulations, 
