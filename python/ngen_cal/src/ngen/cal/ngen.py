@@ -240,7 +240,7 @@ class NgenBase(ModelExec):
     
 class NgenExplicit(NgenBase):
     
-    strategy: Literal[NgenStrategy.explicit]
+    strategy: Literal[NgenStrategy.explicit] = NgenStrategy.explicit
 
     def __init__(self, **kwargs):
         #Let pydantic work its magic
@@ -290,7 +290,7 @@ class NgenExplicit(NgenBase):
 
 class NgenIndependent(NgenBase):
     
-    strategy: Literal[NgenStrategy.independent]
+    strategy: Literal[NgenStrategy.independent] = NgenStrategy.independent
     params: Mapping[str, Parameters] #required in this case...
 
     def __init__(self, **kwargs):
@@ -351,7 +351,7 @@ class NgenUniform(NgenBase):
         Uses a global ngen configuration and permutes just this global parameter space
         which is applied to each catchment in the hydrofabric being simulated.
     """
-    strategy: Literal[NgenStrategy.uniform]
+    strategy: Literal[NgenStrategy.uniform] = NgenStrategy.uniform
     params: Mapping[str, Parameters] #required in this case...
 
     def __init__(self, **kwargs):
